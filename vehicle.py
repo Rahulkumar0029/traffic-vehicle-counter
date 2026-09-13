@@ -35,7 +35,10 @@ def main():
         raise RuntimeError(f"Could not open video: {video_path}")
 
     count_line_position = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT) * 0.76)
-    counter = 0
+    inbound_count = 0
+    outbound_count = 0
+    inbound_counts = {}
+    outbound_counts = {}
     counted_ids = set()
     previous_centers = {}
     frame_number = 0
@@ -64,15 +67,23 @@ def main():
                     center_x = (x1 + x2) // 2
                     center_y = (y1 + y2) // 2
                     previous_y = previous_centers.get(track_id)
-                    crossed_line = previous_y is not None and (
-                        (previous_y < count_line_position <= center_y)
-                        or (previous_y > count_line_position >= center_y)
-                    )
+                    direction = None
+                    if previous_y is not None:
+                        if previous_y < count_line_position <= center_y:
+                            direction = "outbound"
+                        elif previous_y > count_line_position >= center_y:
+                            direction = "inbound"
 
-                    if track_id not in counted_ids and crossed_line:
+                    if track_id not in counted_ids and direction is not None:
                         counted_ids.add(track_id)
-                        counter += 1
-                        print(f"Vehicle counted ({label}): {counter}")
+                        if direction == "outbound":
+                            outbound_count += 1
+                            outbound_counts[label] = outbound_counts.get(label, 0) + 1
+                        else:
+                            inbound_count += 1
+                            inbound_counts[label] = inbound_counts.get(label, 0) + 1
+                        total_count = inbound_count + outbound_count
+                        print(f"Vehicle counted ({direction}, {label}): {total_count}")
 
                     previous_centers[track_id] = center_y
                     box_color = (0, 255, 255) if track_id in counted_ids else (0, 255, 0)
@@ -81,7 +92,12 @@ def main():
                     cv2.putText(frame, f"{label} #{track_id}", (x1, max(y1 - 10, 20)),
                                 cv2.FONT_HERSHEY_SIMPLEX, 0.7, box_color, 2)
 
-            cv2.putText(frame, f"VEHICLE COUNTER: {counter}", (30, 55),
+            total_count = inbound_count + outbound_count
+            cv2.putText(frame, f"INBOUND: {inbound_count}", (30, 45),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.9, (255, 100, 0), 2)
+            cv2.putText(frame, f"OUTBOUND: {outbound_count}", (30, 80),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 180, 255), 2)
+            cv2.putText(frame, f"TOTAL: {total_count}", (30, 115),
                         cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0, 0, 255), 4)
 
             if not args.no_display:
@@ -96,7 +112,11 @@ def main():
         if not args.no_display:
             cv2.destroyAllWindows()
 
-    print(f"Finished: {frame_number} frames processed, {counter} vehicles counted.")
+    total_count = inbound_count + outbound_count
+    print(f"Inbound vehicles: {inbound_count}")
+    print(f"Outbound vehicles: {outbound_count}")
+    print(f"Total vehicles: {total_count}")
+    print(f"Finished: {frame_number} frames processed.")
 
 
 if __name__ == "__main__":

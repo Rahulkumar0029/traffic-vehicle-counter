@@ -1,0 +1,29 @@
+# ---- detection / tracking ----
+model: yolov8n.pt          # try yolov8s.pt for better accuracy (slower)
+conf: 0.35                 # detection confidence threshold
+imgsz: 640                 # try 960 if cars are small / far away
+classes: [2, 3, 5, 7]      # COCO: 2=car 3=motorcycle 5=bus 7=truck
+tracker: bytetrack.yaml    # or botsort.yaml
+anchor: bottom             # point used for slot/gate tests: bottom | center
+
+# ---- slots ----
+slots_file: slots.json
+occupancy:
+  park_seconds: 2.0            # vehicle must sit still this long to count as parked
+  release_seconds: 3.0         # slot frees after no vehicle seen this long
+  min_presence: 0.8            # fraction of the park window the car must be detected
+  move_threshold_frac: 0.02    # max movement while parked (fraction of frame width)
+
+# ---- entry / exit gate (only used if a gate was drawn in define_slots.py) ----
+gate:
+  cooldown_seconds: 2.0
+  in_direction: positive       # flip to 'negative' if IN/OUT are swapped
+
+# ---- outputs ----
+output:
+  video: output/parking_out.mp4
+  events_csv: output/events.csv
+  timeline_csv: output/occupancy_timeline.csv
+  sqlite: output/parking.db
+  summary: output/summary.json
+display: true

@@ -1,0 +1,27 @@
+# Python bytecode
+__pycache__/
+*.pyc
+*.pyo
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# IDE and editors
+.idea/
+.vscode/
+
+# Database files
+*.db
+
+# Output directory and videos
+output/
+*.mp4
+*.avi
+*.mkv
+*.mov
+
+# Preserve model weights and legacy demo video
+!yolov8n.pt
+!legacy/traffic_counter/video.mp4

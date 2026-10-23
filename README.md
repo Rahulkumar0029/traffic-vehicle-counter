@@ -1,119 +1,86 @@
-# Traffic Vehicle Counter
+# Traffic Vehicle Counter & Predictor
 
-A YOLOv8 and OpenCV vehicle detector that tracks vehicles in video and counts them by movement direction.
+An AI-powered computer vision system using YOLOv8 and OpenCV for real-time traffic vehicle detection, multi-object tracking, speed estimation, directional lane counting, and traffic volume forecasting.
 
-## Features
+---
 
-- Detects cars, buses, trucks, motorcycles, and bicycles.
-- Assigns tracking IDs to detected vehicles.
-- Prevents the same tracked vehicle from being counted twice.
-- Counts inbound and outbound vehicles separately.
-- Displays the combined total count in real time.
-- Supports recorded video input.
-- Can run with or without a display window.
+## 🎯 Objectives Implemented
 
-## How Direction Is Calculated
+| Objective | Implementation Details |
+|---|---|
+| **1. Detect vehicles using AI** | YOLOv8 detects cars, trucks, buses, motorcycles, and bicycles with high precision. |
+| **2. Track vehicles uniquely** | Persistent multi-object tracking assigns unique IDs to eliminate double-counting. |
+| **3. Count vehicles automatically** | Categorizes vehicle flows into Outbound (southbound) and Inbound (northbound) lanes. |
+| **4. Provide real-time monitoring** | Live HUD overlays: active vehicle counts, category breakdown, average speeds (px/s), dynamic trajectory trails, total vehicle counter, and real-time FPS counter. |
+| **5. Enable future traffic prediction** | Aggregates traffic count time-series data and event logs to forecast future traffic volume and congestion levels. |
 
-The program uses a horizontal counting line near the bottom of the video:
+---
 
-- A vehicle moving downward across the line is counted as **outbound**.
-- A vehicle moving upward across the line is counted as **inbound**.
-- Each tracking ID is counted only once.
+## 📊 Live Visual HUD Overview
 
-These directions are based on the camera view. If the camera is repositioned, the meaning of inbound and outbound may need to be changed.
+The visual display matches the highway camera layout:
 
-## Requirements
+- **Highway Divider Line**: Blue vertical line dividing outbound (left roadway) and inbound (right roadway) traffic.
+- **Top-Left (Outbound)**: Bright green counts and average speeds (e.g., `car: 21 (Avg: 218.9px/s)`).
+- **Top-Left (Inbound)**: Blue counts and average speeds (e.g., `car: 9 (Avg: 218.9px/s)`).
+- **Top-Right**: High-visibility bold red `TOTAL: <count>`.
+- **Bottom-Right**: Real-time `FPS: <value>` in cyan.
+- **Vehicle Markers**:
+  - Green bounding box around detected vehicles.
+  - Red dot at vehicle centroid.
+  - Yellow label with confidence score (e.g., `car 0.7`).
+  - Cyan motion vector trailing vehicle movement.
 
-- Windows, macOS, or Linux
-- Python 3.11 recommended
-- The YOLOv8 Nano model included in this repository
-- A video file named `video.mp4`
+---
 
-## Installation
+## 🚀 Quick Start
 
-Clone the repository:
-
-```bash
-git clone https://github.com/Rahulkumar0029/traffic-vehicle-counter.git
-cd traffic-vehicle-counter
-```
-
-Install the Python packages:
-
-```bash
-python -m pip install ultralytics opencv-python
-```
-
-On Windows, if multiple Python versions are installed:
-
-```powershell
-py -3.11 -m pip install ultralytics opencv-python
-```
-
-## Run With Video Output
-
-This opens a window showing the detections, tracking boxes, counting line, inbound count, outbound count, and total count:
+### 1. Run Live Video with Display Window
 
 ```powershell
 py -3.11 vehicle.py
 ```
+*(Or press `F5` in VS Code to launch directly.)*
 
-Press `Esc` to stop the program.
+Press `Esc` or `q` to exit the live window anytime.
 
-## Run Without a Display
-
-Use headless mode when running through a server, terminal, or cloud environment:
-
-```powershell
-py -3.11 vehicle.py --no-display
-```
-
-The final summary is printed in the terminal, for example:
-
-```text
-Inbound vehicles: 3
-Outbound vehicles: 8
-Total vehicles: 11
-Finished: 300 frames processed.
-```
-
-## Command Options
-
-```text
---video PATH       Video input path. Default: video.mp4
---model PATH       YOLO model path. Default: yolov8n.pt
---no-display       Disable the OpenCV display window
---max-frames N     Stop after N frames. Useful for testing
-```
-
-Example test run:
+### 2. Run in Headless Mode (Fast / Background)
 
 ```powershell
-py -3.11 vehicle.py --max-frames 300
+py -3.11 vehicle.py --no-display --max-frames 300
 ```
 
-## Project Files
+### 3. Generate Traffic Prediction & Forecast
 
-- `vehicle.py` - Detection, tracking, directional counting, and display logic.
-- `yolov8n.pt` - YOLOv8 Nano model used for vehicle detection.
-- `video.mp4` - Sample traffic video.
+```powershell
+py -3.11 predict_traffic.py
+```
 
-## Technical Workflow
+---
 
-1. Load the YOLOv8 Nano model.
-2. Open the input video with OpenCV.
-3. Detect and track objects in each frame.
-4. Filter detections to vehicle classes.
-5. Calculate each vehicle's center point.
-6. Detect when a tracked vehicle crosses the counting line.
-7. Classify the movement as inbound or outbound.
-8. Count each tracking ID once.
-9. Display and print the directional totals.
+## 📁 Output Artifacts Generated
 
-## Current Scope
+All results are automatically generated in the `output/` directory:
 
-The current implementation estimates direction from the movement of a vehicle across a horizontal line. It does not currently provide calibrated speed in km/h, CSV logging, a browser dashboard, or live camera deployment.
+- `output/traffic_screenshot.png`: High-resolution frame snapshot demonstrating detection and tracking HUD.
+- `output/traffic_output.mp4`: Saved annotated video with full bounding boxes, trajectories, and statistics.
+- `output/events.csv`: Per-vehicle log with timestamp, track ID, vehicle class, direction, confidence, and speed.
+- `output/traffic_prediction_timeseries.csv`: Interval-based traffic counts formatted for time-series forecasting.
+- `output/traffic_forecast.json`: Forecast report with hourly vehicle flow projection and congestion status.
+- `output/summary.json`: Comprehensive session summary of vehicle categories and directional counts.
 
-## Repository
+---
 
-https://github.com/Rahulkumar0029/traffic-vehicle-counter
+## ⚙️ Command-Line Options
+
+```text
+--video PATH          Path to input video (default: video.mp4)
+--model PATH          Path to YOLO model (default: yolov8n.pt)
+--output-dir PATH     Directory for outputs (default: output)
+--max-frames N        Process N frames (0 for entire video)
+--no-display          Disable OpenCV GUI window
+--no-save-video       Skip saving annotated MP4 video
+--conf FLOAT          YOLO confidence threshold (default: 0.25)
+--divider-x INT       X-coordinate of median divider line (default: 635)
+--trail-len INT       Length of trajectory trails (default: 15)
+```

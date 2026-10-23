@@ -11,7 +11,7 @@ VEHICLE_CLASSES = {"car", "bus", "truck", "motorbike", "motorcycle", "bicycle"}
 def parse_args():
     parser = ArgumentParser(description="Count vehicles crossing a line in a video.")
     parser.add_argument("--video", type=Path, default=Path("video.mp4"))
-    parser.add_argument("--model", type=Path, default=Path("yolov8n.pt"))
+    parser.add_argument("--model", type=Path, default=Path("../../yolov8n.pt"))
     parser.add_argument("--no-display", action="store_true")
     parser.add_argument("--max-frames", type=int, default=0)
     return parser.parse_args()
